@@ -70,6 +70,11 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
       publicNetworkAccess: 'Enabled'
       linuxFxVersion: 'Python|3.11'
       pythonVersion: '3.11'
+      cors: {
+        allowedOrigins: [
+          'https://portal.azure.com'
+        ]
+      }
       appSettings: [
         {
           name: 'AzureWebJobsStorage'
