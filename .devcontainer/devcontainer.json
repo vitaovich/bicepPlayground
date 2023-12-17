@@ -10,8 +10,11 @@
 		"ghcr.io/devcontainers/features/azure-cli:1": {
 			"installBicep": true,
 			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/dotnet:2": {
+			"version": "latest"
 		}
-	}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -20,10 +23,24 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "python --version",
+	"postCreateCommand": "python --version && az bicep install && az bicep upgrade",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+			  "ms-vscode.vscode-node-azure-pack",
+			  "ms-vscode.azure-account",
+			  "ms-azuretools.vscode-azureresourcegroups",
+			  "ms-azuretools.vscode-azurefunctions",
+			  "ms-azuretools.vscode-bicep",
+			  "ms-azuretools.vscode-azurestorage",
+			  "ms-azuretools.vscode-cosmosdb",
+			  "ms-azuretools.vscode-docker"
+			]
+		  }
+	},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
