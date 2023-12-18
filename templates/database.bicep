@@ -7,8 +7,8 @@ param location string = resourceGroup().location
 @description('The name for the SQL API database')
 param databaseName string
 
-@description('The name for the SQL API container')
-param containerName string
+// @description('The name for the SQL API container')
+// param containerName string
 
 resource account 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: toLower(accountName)
@@ -35,36 +35,49 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15
       id: databaseName
     }
     options: {
-      throughput: 1000
+      throughput: 500
     }
   }
 }
 
-resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
-  parent: database
-  name: containerName
-  properties: {
-    resource: {
-      id: containerName
-      partitionKey: {
-        paths: [
-          '/myPartitionKey'
-        ]
-        kind: 'Hash'
-      }
-      indexingPolicy: {
-        indexingMode: 'consistent'
-        includedPaths: [
-          {
-            path: '/*'
-          }
-        ]
-        excludedPaths: [
-          {
-            path: '/_etag/?'
-          }
-        ]
+var containersInfo = [
+  {
+    name: 'upload'
+  }
+  {
+    name: 'processed'
+  }
+  {
+    name: 'leases'
+  }
+]
+
+resource containers 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = [for container in containersInfo: {
+    parent: database
+    name: container.name
+    properties: {
+      resource: {
+        id: container.name
+        partitionKey: {
+          paths: [
+            '/id'
+          ]
+          kind: 'Hash'
+        }
+        indexingPolicy: {
+          indexingMode: 'consistent'
+          includedPaths: [
+            {
+              path: '/*'
+            }
+          ]
+          excludedPaths: [
+            {
+              path: '/_etag/?'
+            }
+          ]
+        }
       }
     }
   }
-}
+]

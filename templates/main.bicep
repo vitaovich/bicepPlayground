@@ -26,6 +26,5 @@ module database 'database.bicep' = {
   params: {
     location: location
     databaseName: 'Models'
-    containerName: 'Details'
   }
 }
