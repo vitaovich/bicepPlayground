@@ -5,17 +5,15 @@ param myObjId string
 param location string = resourceGroup().location
 
 module azfunc 'azfunc.bicep' = {
-  name: 'AzFunc'
+  name: 'az-func'
   params: {
-    // principalId: myObjId
-    // principalType: 'Group'
     appInsightsLocation: location
     location: location
   }
 }
 
 module mainStorage 'storage.bicep' = {
-  name: 'Storage'
+  name: 'az-storage'
   params: {
     location: location
     containerInfos: [
@@ -29,7 +27,7 @@ module mainStorageRBAC './storage.rbac.bicep' = {
   dependsOn:[
     mainStorage
   ]
-  name: 'main-storage-rbac'
+  name: 'az-storage-rbac'
   params:{
     storageAccountName: mainStorage.outputs.storageAccountName
     principalId: myObjId
@@ -39,10 +37,38 @@ module mainStorageRBAC './storage.rbac.bicep' = {
 }
 
 module database 'database.bicep' = {
-  name: 'Database'
+  name: 'az-cosmosdb'
   params: {
     location: location
     databaseName: 'Models'
-    myObjId: myObjId
+  }
+}
+
+module databaseRoleDefinition 'database.roleDef.bicep' = {
+  dependsOn:[
+    database
+  ]
+  name: 'az-cosmosdb-roleDefinition'
+  params: {
+    dataActions: [
+      'Microsoft.DocumentDB/databaseAccounts/readMetadata'
+      'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
+      'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
+    ]
+    databaseAccountName: database.outputs.cosmosDbAccountName
+    principalId: myObjId
+    roleDefinitionName: 'My Read Write Role'
+  }
+}
+
+module databaseRBAC './database.rbac.bicep' = {
+  dependsOn:[
+    databaseRoleDefinition
+  ]
+  name: 'az-cosmosdb-rbac'
+  params:{
+    databaseAccountName: database.outputs.cosmosDbAccountName
+    principalId: myObjId
+    roleDefinitionName: databaseRoleDefinition.outputs.readWriteRoleDefinitionName
   }
 }

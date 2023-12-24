@@ -21,17 +21,18 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing 
 
 @description('These are the built-in roles. See https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles')
 resource roleDefinitions 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = [for roleId in roleIds: {
-  scope: storageAccount
-  name: roleId
-}
+    scope: storageAccount
+    name: roleId
+  }
 ]
 
 resource roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for i in range(0, length(roleIds)): {
-  scope: storageAccount
-  name: guid(storageAccount.id, principalId, roleDefinitions[i].id)
-  properties: {
-    roleDefinitionId: roleDefinitions[i].id
-    principalId: principalId
-    principalType: principalType
+    scope: storageAccount
+    name: guid(storageAccount.id, principalId, roleDefinitions[i].id)
+    properties: {
+      roleDefinitionId: roleDefinitions[i].id
+      principalId: principalId
+      principalType: principalType
+    }
   }
-}]
+]

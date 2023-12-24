@@ -31,6 +31,7 @@ resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2
 ]
 
 output storageAccountName string = storageAccount.name
+
 // @description('Provide a name for the Event Grid subscription.')
 // param eventSubName string = 'subToStorage'
 

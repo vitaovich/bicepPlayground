@@ -38,7 +38,7 @@ param runtime string = 'python'
 var functionAppName = appName
 var hostingPlanName = appName
 var applicationInsightsName = appName
-var storageAccountName = '${uniqueString(resourceGroup().id)}azfunctions'
+var storageAccountName = '${uniqueString(resourceGroup().id)}azfunc'
 var functionWorkerRuntime = runtime
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
@@ -55,7 +55,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
 }
 
 // module AzureWebJobsStorageRBAC './storage.rbac.bicep' = {
-//   name: 'AzureWebJobs-storage-rbac'
+//   name: 'az-func-storage-rbac'
 //   params:{
 //     storageAccountName: storageAccount.name
 //     principalId: principalId
