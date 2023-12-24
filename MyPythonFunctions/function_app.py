@@ -33,12 +33,18 @@ def EventGridTrigger(event: func.EventGridEvent, documents: func.Out[func.Docume
                        create_lease_collection_if_not_exists="true"
                        )
 @app.blob_output(arg_name="outputblob",
-                path="modified-vikpwnywivhg2/test.txt",
+                path="modified-vikpwnywivhg2/{rand-guid}.json",
                 connection="my_storage")
 def test_function(documents: func.DocumentList, outputblob: func.Out[str]) -> str:
     if documents:
         logging.info('Document id: %s', documents[0]['id'])
-        outputblob.set(documents[0]['id'])
+        firstDoc = documents[0]
+        myDocument = {
+            'id': firstDoc['id'],
+            'name':  firstDoc['name'],
+            'createdOn': firstDoc['createdOn']
+        }
+        outputblob.set(json.dumps(myDocument))
     else:
         logging.info('No documents')
 
