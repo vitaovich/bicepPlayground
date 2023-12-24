@@ -133,6 +133,25 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
   }
 }
 
+var functionNameComputed = 'myBlobEventToCosmosTrigger'
+
+resource myEventfunction 'Microsoft.Web/sites/functions@2021-03-01' = {
+  parent: functionApp
+  name: functionNameComputed
+  properties: {
+    config: {
+      disabled: false
+      bindings: [
+      {
+          direction: 'IN'
+          type: 'eventGridTrigger'
+          name: 'event'
+      }
+      ]
+    }
+  }
+}
+
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: applicationInsightsName
   location: appInsightsLocation
@@ -144,3 +163,4 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 output principalId string = functionApp.identity.principalId
+output myEventfunctionId string = myEventfunction.id
