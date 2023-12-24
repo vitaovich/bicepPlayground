@@ -28,10 +28,17 @@ var containerInfo = [
   }
 ]
 
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
+  name: 'default'
+  parent: storageAccount
+}
+
 resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-09-01' = [for container in containerInfo: {
-    name: '${storageAccount.name}/default/${container.name}-${uniqueString(resourceGroup().id)}'
+    parent: blobService
+    name: '${container.name}-${uniqueString(resourceGroup().id)}'
   }
 ]
+
 @description('This is the built-in Contributor role. See https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor')
 resource contributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   scope: storageAccount
@@ -39,7 +46,7 @@ resource contributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022
 }
 
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: storageAccount
+  scope: blobService
   name: guid(storageAccount.id, myObjId, contributorRoleDefinition.id)
   properties: {
     roleDefinitionId: contributorRoleDefinition.id

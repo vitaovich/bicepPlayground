@@ -26,5 +26,6 @@ module database 'database.bicep' = {
   params: {
     location: location
     databaseName: 'Models'
+    myObjId: myObjId
   }
 }
