@@ -1,6 +1,7 @@
 import azure.functions as func
 import logging
 import json
+import uuid
 
 app = func.FunctionApp()
 
@@ -40,3 +41,33 @@ def test_function(documents: func.DocumentList, outputblob: func.Out[str]) -> st
         outputblob.set(documents[0]['id'])
     else:
         logging.info('No documents')
+
+@app.route(route="http_trigger_to_cosmos", auth_level=func.AuthLevel.ANONYMOUS)
+@app.cosmos_db_output(arg_name="documents", 
+                      database_name="Models",
+                      container_name="upload",
+                      create_if_not_exists=True,
+                      connection="MyAcc_COSMOSDB")
+def http_trigger_to_cosmos(req: func.HttpRequest, documents: func.Out[func.Document]) -> func.HttpResponse:
+    logging.info('Python HTTP trigger function processed a request.')
+
+    name = req.params.get('name')
+    if not name:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            name = req_body.get('name')
+
+    if name:
+        new_id = uuid.uuid4()
+        new_name = {'id': str(new_id),'name': str(name)}
+        print('Writing to database',new_name)
+        documents.set(func.Document.from_json(json.dumps(new_name)))
+        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
+    else:
+        return func.HttpResponse(
+             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
+             status_code=200
+        )

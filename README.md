@@ -20,3 +20,17 @@ https://learn.microsoft.com/en-us/azure/event-grid/blob-event-quickstart-bicep?t
 https://learn.microsoft.com/en-us/training/modules/intro-azure-functions/1-introduction?ns-enrollment-type=learningpath&ns-enrollment-id=learn.create-serverless-applications
 
 curl -X POST -H "Content-Type: application/json" -d '[{'test':'test2'}]' https://5d82-50-47-225-220.ngrok-free.app/runtime/webhooks/EventGrid?functionName=EventGridTrigger
+
+
+
+steps to follow:
+- deploy out bicep templates
+- update connection strings
+- connect azure function with event grid
+
+
+## Conda
+
+`conda env update --file environment.yml  --prune`
+`conda activate my_jupyterlab_env`
+`python -m ipykernel install --user --name my_jupyterlab_env --display-name "Conda (my_jupyterlab_env)"`

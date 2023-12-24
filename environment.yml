@@ -1,0 +1,16 @@
+name: my_jupyterlab_env
+channels:
+  - defaults
+dependencies:
+  - python=3.8  # or any version you prefer
+  - jupyter
+  - ipykernel
+  - numpy
+  - pandas
+  - matplotlib
+  - pip
+  - pip:
+    - azure-cosmos
+    - azure-storage-blob
+    - azure-identity
+    - azure-functions
