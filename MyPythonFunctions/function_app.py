@@ -10,7 +10,6 @@ app = func.FunctionApp()
 @app.cosmos_db_output(arg_name="documents", 
                       database_name="Models",
                       container_name="processed",
-                      create_if_not_exists=True,
                       connection="my_cosmos")
 def EventGridTrigger(event: func.EventGridEvent, documents: func.Out[func.Document]):
     result = json.dumps({
@@ -34,7 +33,7 @@ def EventGridTrigger(event: func.EventGridEvent, documents: func.Out[func.Docume
                        )
 @app.blob_output(arg_name="outputblob",
                 path="modified-vikpwnywivhg2/test.txt",
-                connection="MyOutStorage")
+                connection="my_storage")
 def test_function(documents: func.DocumentList, outputblob: func.Out[str]) -> str:
     if documents:
         logging.info('Document id: %s', documents[0]['id'])
@@ -46,7 +45,6 @@ def test_function(documents: func.DocumentList, outputblob: func.Out[str]) -> st
 @app.cosmos_db_output(arg_name="documents", 
                       database_name="Models",
                       container_name="upload",
-                      create_if_not_exists=True,
                       connection="my_cosmos")
 def http_trigger_to_cosmos(req: func.HttpRequest, documents: func.Out[func.Document]) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')

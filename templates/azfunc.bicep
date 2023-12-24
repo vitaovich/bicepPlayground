@@ -1,6 +1,17 @@
 @description('The name of the function app that you wish to create.')
 param appName string = 'myfnapp${uniqueString(resourceGroup().id)}'
 
+// @description('The Service Principal ID')
+// param principalId string
+
+// @allowed([
+//   'User'
+//   'Group'
+//   'ServicePrincipal'
+// ])
+// @description('The Service Principal type')
+// param principalType string
+
 @description('Storage Account type')
 @allowed([
   'Standard_LRS'
@@ -42,6 +53,20 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
     defaultToOAuthAuthentication: true
   }
 }
+
+// module AzureWebJobsStorageRBAC './storage.rbac.bicep' = {
+//   name: 'AzureWebJobs-storage-rbac'
+//   params:{
+//     storageAccountName: storageAccount.name
+//     principalId: principalId
+//     principalType: principalType
+//     roleIds: [
+//       'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Blob Data Owner 
+//       '974c5e8b-45b9-4653-ba55-5f855dd0fb88' // Storage Queue Data Contributor
+//       '17d1049b-9a84-46fb-8f53-869881c3d3ab' // Storage Account Contributor
+//     ]
+//   }
+// }
 
 resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: hostingPlanName

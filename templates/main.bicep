@@ -7,17 +7,34 @@ param location string = resourceGroup().location
 module azfunc 'azfunc.bicep' = {
   name: 'AzFunc'
   params: {
+    // principalId: myObjId
+    // principalType: 'Group'
     appInsightsLocation: location
     location: location
   }
 }
 
-module storage 'storage.bicep' = {
+module mainStorage 'storage.bicep' = {
   name: 'Storage'
   params: {
     location: location
-    myObjId: myObjId
-    // endpoint: 'https://vialekhntesteventgrid.azurewebsites.net/api/updates'
+    containerInfos: [
+      'original'
+      'modified'
+    ]
+  }
+}
+
+module mainStorageRBAC './storage.rbac.bicep' = {
+  dependsOn:[
+    mainStorage
+  ]
+  name: 'main-storage-rbac'
+  params:{
+    storageAccountName: mainStorage.outputs.storageAccountName
+    principalId: myObjId
+    principalType: 'Group'
+    roleIds: ['ba92f5b4-2d11-453d-a403-e96b0029c9fe']
   }
 }
 
