@@ -12,7 +12,7 @@ module azfunc 'azfunc.bicep' = {
   }
 }
 
-module mainStorage 'storage.bicep' = {
+module azStorage 'storage.bicep' = {
   name: 'az-storage'
   params: {
     location: location
@@ -23,20 +23,20 @@ module mainStorage 'storage.bicep' = {
   }
 }
 
-module mainStorageRBAC './storage.rbac.bicep' = {
+module azStorageRBAC './storage.rbac.bicep' = {
   dependsOn:[
-    mainStorage
+    azStorage
   ]
   name: 'az-storage-rbac'
   params:{
-    storageAccountName: mainStorage.outputs.storageAccountName
+    storageAccountName: azStorage.outputs.storageAccountName
     principalId: myObjId
     principalType: 'Group'
     roleIds: ['ba92f5b4-2d11-453d-a403-e96b0029c9fe']
   }
 }
 
-module database 'database.bicep' = {
+module azCosmosDB 'database.bicep' = {
   name: 'az-cosmosdb'
   params: {
     location: location
@@ -46,7 +46,7 @@ module database 'database.bicep' = {
 
 module databaseRoleDefinition 'database.roleDef.bicep' = {
   dependsOn:[
-    database
+    azCosmosDB
   ]
   name: 'az-cosmosdb-roleDefinition'
   params: {
@@ -55,20 +55,32 @@ module databaseRoleDefinition 'database.roleDef.bicep' = {
       'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
       'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
     ]
-    databaseAccountName: database.outputs.cosmosDbAccountName
+    databaseAccountName: azCosmosDB.outputs.cosmosDbAccountName
     principalId: myObjId
     roleDefinitionName: 'My Read Write Role'
   }
 }
 
-module databaseRBAC './database.rbac.bicep' = {
+module userGroupCosmosdbRBAC './database.rbac.bicep' = {
   dependsOn:[
     databaseRoleDefinition
   ]
   name: 'az-cosmosdb-rbac'
   params:{
-    databaseAccountName: database.outputs.cosmosDbAccountName
+    databaseAccountName: azCosmosDB.outputs.cosmosDbAccountName
     principalId: myObjId
+    roleDefinitionName: databaseRoleDefinition.outputs.readWriteRoleDefinitionName
+  }
+}
+
+module azFuncCosmosdbRBAC './database.rbac.bicep' = {
+  dependsOn:[
+    databaseRoleDefinition
+  ]
+  name: 'az-func-cosmosdb-rbac'
+  params:{
+    databaseAccountName: azCosmosDB.outputs.cosmosDbAccountName
+    principalId: azfunc.outputs.principalId
     roleDefinitionName: databaseRoleDefinition.outputs.readWriteRoleDefinitionName
   }
 }
