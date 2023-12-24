@@ -2,6 +2,7 @@ import azure.functions as func
 import logging
 import json
 import uuid
+from datetime import datetime
 
 app = func.FunctionApp()
 
@@ -60,7 +61,11 @@ def http_trigger_to_cosmos(req: func.HttpRequest, documents: func.Out[func.Docum
 
     if name:
         new_id = uuid.uuid4()
-        new_name = {'id': str(new_id),'name': str(name)}
+        new_name = {
+            'id': str(new_id),
+            'name': str(name),
+            'createdOn': str(datetime.utcnow())
+        }
         print('Writing to database',new_name)
         documents.set(func.Document.from_json(json.dumps(new_name)))
         return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
