@@ -92,6 +92,7 @@ param roleDefinitionName string = 'My Read Write Role'
 @description('Data actions permitted by the Role Definition')
 param dataActions array = [
   'Microsoft.DocumentDB/databaseAccounts/readMetadata'
+  'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
   'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
 ]
 

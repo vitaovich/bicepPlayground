@@ -11,7 +11,7 @@ app = func.FunctionApp()
                       database_name="Models",
                       container_name="processed",
                       create_if_not_exists=True,
-                      connection="MyAcc_COSMOSDB")
+                      connection="my_cosmos")
 def EventGridTrigger(event: func.EventGridEvent, documents: func.Out[func.Document]):
     result = json.dumps({
         'id': event.id,
@@ -28,7 +28,7 @@ def EventGridTrigger(event: func.EventGridEvent, documents: func.Out[func.Docume
 @app.cosmos_db_trigger(arg_name="documents", 
                        database_name="Models",
                        container_name="upload", 
-                       connection="MyAcc_COSMOSDB",
+                       connection="my_cosmos",
                        lease_container_name="leases", 
                        create_lease_collection_if_not_exists="true"
                        )
@@ -47,7 +47,7 @@ def test_function(documents: func.DocumentList, outputblob: func.Out[str]) -> st
                       database_name="Models",
                       container_name="upload",
                       create_if_not_exists=True,
-                      connection="MyAcc_COSMOSDB")
+                      connection="my_cosmos")
 def http_trigger_to_cosmos(req: func.HttpRequest, documents: func.Out[func.Document]) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
