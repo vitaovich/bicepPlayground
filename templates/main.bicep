@@ -84,3 +84,33 @@ module azFuncCosmosdbRBAC './database.rbac.bicep' = {
     roleDefinitionName: databaseRoleDefinition.outputs.readWriteRoleDefinitionName
   }
 }
+
+module azStorageSystemTopic './event.topic.bicep' = {
+  dependsOn:[
+    azStorage
+  ]
+  name: 'az-storage-system-topic'
+  params:{
+    sourceId: azStorage.outputs.storageAccountId
+    topicType: 'Microsoft.Storage.StorageAccounts'
+    location: location
+  }
+}
+
+module azFuncEventSubscription './event.subscription.bicep' = {
+  dependsOn:[
+    azfunc
+    azStorageSystemTopic
+  ]
+  name: 'az-func-event-subscription'
+  params:{
+    eventSubName: 'subToStorage'
+    includedEventTypes: [
+      'Microsoft.Storage.BlobCreated'
+      'Microsoft.Storage.BlobDeleted'
+    ]
+    systemTopicName: azStorageSystemTopic.outputs.systemTopicName
+    endpointType: 'AzureFunction'
+    functionId: azfunc.outputs.myEventfunctionId
+  }
+}
