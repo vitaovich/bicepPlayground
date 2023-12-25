@@ -1,0 +1,15 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "myObjId": {
+        "value": "22a14f43-816f-4fc8-8b17-08b3769ce9de"
+      },
+      "appNamePrefix": {
+        "value": "myfnapp"
+      },
+      "storageAccountTopicName": {
+        "value": "mystoragesystemtopic"
+      }
+    }
+  }

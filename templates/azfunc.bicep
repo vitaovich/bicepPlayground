@@ -1,5 +1,14 @@
+@description('The prefix name of the function app that you wish to create.')
+param appNamePrefix string = 'myfnapp'
+
 @description('The name of the function app that you wish to create.')
-param appName string = 'myfnapp${uniqueString(resourceGroup().id)}'
+param appName string = '${appNamePrefix}${uniqueString(resourceGroup().id)}'
+
+@description('The url of a cosmos db.')
+param myCosmosEndpoint string = ''
+
+@description('The url of a storage account.')
+param myStorageEndpoint string = ''
 
 // @description('The Service Principal ID')
 // param principalId string
@@ -125,30 +134,19 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: functionWorkerRuntime
         }
+        {
+          name: 'my_cosmos__accountEndpoint'
+          value: myCosmosEndpoint
+        }
+        {
+          name: 'my_storage__serviceUri'
+          value: myStorageEndpoint
+        }
       ]
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
     }
     httpsOnly: true
-  }
-}
-
-var functionNameComputed = 'myBlobEventToCosmosTrigger'
-
-resource myEventfunction 'Microsoft.Web/sites/functions@2021-03-01' = {
-  parent: functionApp
-  name: functionNameComputed
-  properties: {
-    config: {
-      disabled: false
-      bindings: [
-      {
-          direction: 'IN'
-          type: 'eventGridTrigger'
-          name: 'event'
-      }
-      ]
-    }
   }
 }
 
@@ -163,4 +161,3 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 output principalId string = functionApp.identity.principalId
-output myEventfunctionId string = myEventfunction.id

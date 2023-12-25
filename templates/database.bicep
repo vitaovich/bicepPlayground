@@ -80,3 +80,4 @@ resource containers 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containe
 ]
 
 output cosmosDbAccountName string = account.name
+output cosmosDbEndpoint string = account.properties.documentEndpoint

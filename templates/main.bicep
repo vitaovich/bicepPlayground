@@ -4,13 +4,11 @@ param myObjId string
 @description('Location for resources.')
 param location string = resourceGroup().location
 
-module azfunc 'azfunc.bicep' = {
-  name: 'az-func'
-  params: {
-    appInsightsLocation: location
-    location: location
-  }
-}
+@description('Provide a name for the system topic.')
+param storageAccountTopicName string = 'mystoragesystemtopic'
+
+@description('The prefix name of the function app that you wish to create.')
+param appNamePrefix string = 'myfnapp'
 
 module azStorage 'storage.bicep' = {
   name: 'az-storage'
@@ -20,6 +18,46 @@ module azStorage 'storage.bicep' = {
       'original'
       'modified'
     ]
+  }
+}
+
+module azCosmosDB 'database.bicep' = {
+  name: 'az-cosmosdb'
+  params: {
+    location: location
+    databaseName: 'Models'
+  }
+}
+
+module databaseRoleDefinition 'database.roleDef.bicep' = {
+  dependsOn:[
+    azCosmosDB
+  ]
+  name: 'az-cosmosdb-roleDefinition'
+  params: {
+    dataActions: [
+      'Microsoft.DocumentDB/databaseAccounts/readMetadata'
+      'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
+      'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
+    ]
+    databaseAccountName: azCosmosDB.outputs.cosmosDbAccountName
+    principalId: myObjId
+    roleDefinitionName: 'My Read Write Role'
+  }
+}
+
+module azfunc 'azfunc.bicep' = {
+  dependsOn: [
+    azStorage
+    azCosmosDB
+  ]
+  name: 'az-func'
+  params: {
+    appNamePrefix: appNamePrefix
+    appInsightsLocation: location
+    location: location
+    myCosmosEndpoint: azCosmosDB.outputs.cosmosDbEndpoint
+    myStorageEndpoint: azStorage.outputs.storageEndPoint
   }
 }
 
@@ -46,31 +84,6 @@ module azFuncStorageRBAC './storage.rbac.bicep' = {
     principalId: azfunc.outputs.principalId
     principalType: 'ServicePrincipal'
     roleIds: ['ba92f5b4-2d11-453d-a403-e96b0029c9fe']
-  }
-}
-
-module azCosmosDB 'database.bicep' = {
-  name: 'az-cosmosdb'
-  params: {
-    location: location
-    databaseName: 'Models'
-  }
-}
-
-module databaseRoleDefinition 'database.roleDef.bicep' = {
-  dependsOn:[
-    azCosmosDB
-  ]
-  name: 'az-cosmosdb-roleDefinition'
-  params: {
-    dataActions: [
-      'Microsoft.DocumentDB/databaseAccounts/readMetadata'
-      'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*'
-      'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
-    ]
-    databaseAccountName: azCosmosDB.outputs.cosmosDbAccountName
-    principalId: myObjId
-    roleDefinitionName: 'My Read Write Role'
   }
 }
 
@@ -107,23 +120,6 @@ module azStorageSystemTopic './event.topic.bicep' = {
     sourceId: azStorage.outputs.storageAccountId
     topicType: 'Microsoft.Storage.StorageAccounts'
     location: location
-  }
-}
-
-module azFuncEventSubscription './event.subscription.bicep' = {
-  dependsOn:[
-    azfunc
-    azStorageSystemTopic
-  ]
-  name: 'az-func-event-subscription'
-  params:{
-    eventSubName: 'subToStorage'
-    includedEventTypes: [
-      'Microsoft.Storage.BlobCreated'
-      'Microsoft.Storage.BlobDeleted'
-    ]
-    systemTopicName: azStorageSystemTopic.outputs.systemTopicName
-    endpointType: 'AzureFunction'
-    functionId: azfunc.outputs.myEventfunctionId
+    systemTopicName: storageAccountTopicName
   }
 }
