@@ -12,8 +12,8 @@ az configure --defaults group=[sandbox resource group name]
 
 az configure --defaults group=vialekhnBicep
 
-az deployment group create --template-file main.bicep --parameters myObjId=22a14f43-816f-4fc8-8b17-08b3769ce9de
-
+az deployment group create --template-file main.bicep --parameters main.parameters.dev.json 
+az deployment group create --template-file main.event.subscriptions.bicep --parameters main.parameters.dev.json 
 
 https://learn.microsoft.com/en-us/azure/event-grid/blob-event-quickstart-bicep?tabs=CLI
 
