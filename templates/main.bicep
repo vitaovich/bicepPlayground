@@ -36,6 +36,19 @@ module azStorageRBAC './storage.rbac.bicep' = {
   }
 }
 
+module azFuncStorageRBAC './storage.rbac.bicep' = {
+  dependsOn:[
+    azStorage
+  ]
+  name: 'az-func-storage-rbac'
+  params:{
+    storageAccountName: azStorage.outputs.storageAccountName
+    principalId: azfunc.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleIds: ['ba92f5b4-2d11-453d-a403-e96b0029c9fe']
+  }
+}
+
 module azCosmosDB 'database.bicep' = {
   name: 'az-cosmosdb'
   params: {
