@@ -28,6 +28,9 @@ resource "azurerm_resource_group" "rg" {
   }
 }
 
+################################
+# Storage Account
+################################
 resource "azurerm_storage_account" "models" {
   name                     = "${local.prefix}models"
   resource_group_name      = azurerm_resource_group.rg.name
@@ -101,6 +104,7 @@ resource "azurerm_linux_function_app" "example" {
   app_settings = {
     "my_storage__serviceUri" = azurerm_storage_account.models.primary_blob_endpoint
     "my_storage__queueServiceUri" = azurerm_storage_account.models.primary_queue_endpoint
+    "my_cosmos_accountEndpoint" = azurerm_cosmosdb_account.db.endpoint
   }
 
   identity {
@@ -156,4 +160,103 @@ resource "azurerm_role_assignment" "az_func_storage_contributor" {
   scope                = azurerm_storage_account.models.id
   role_definition_name = each.value
   principal_id         = azurerm_linux_function_app.example.identity.0.principal_id
+}
+
+################################
+# CosmosDB
+################################
+resource "azurerm_cosmosdb_account" "db" {
+  name                = "${local.prefix}-tfex-cosmos-db"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+  enable_free_tier = true
+
+  enable_automatic_failover = true
+
+  consistency_policy {
+    consistency_level       = "BoundedStaleness"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 100000
+  }
+
+  geo_location {
+    location          = "westus3"
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "main" {
+  name                = "cosmosdb-sqldb"
+  resource_group_name = azurerm_resource_group.rg.name
+  account_name        = azurerm_cosmosdb_account.db.name
+  throughput          = 800
+}
+
+resource "azurerm_cosmosdb_sql_container" "my_sql_container" {
+  name                  = "container"
+  resource_group_name   = azurerm_resource_group.rg.name
+  account_name          = azurerm_cosmosdb_account.db.name
+  database_name         = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path    = "/id"
+  partition_key_version = 1
+
+  indexing_policy {
+    indexing_mode = "consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    included_path {
+      path = "/included/?"
+    }
+
+    excluded_path {
+      path = "/excluded/?"
+    }
+  }
+}
+
+resource "azurerm_cosmosdb_sql_container" "leases_container" {
+  name                  = "leases"
+  resource_group_name   = azurerm_resource_group.rg.name
+  account_name          = azurerm_cosmosdb_account.db.name
+  database_name         = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path    = "/id"
+}
+
+resource "azurerm_cosmosdb_sql_role_definition" "example" {
+  name                = "My Read Write Role"
+  resource_group_name = azurerm_resource_group.rg.name
+  account_name        = azurerm_cosmosdb_account.db.name
+  type                = "CustomRole"
+  assignable_scopes   = [azurerm_cosmosdb_account.db.id]
+
+  permissions {
+    data_actions = [
+      "Microsoft.DocumentDB/databaseAccounts/readMetadata",
+      "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/*",
+      "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*"
+    ]
+  }
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "role_assign_contributor_group" {
+  name                = "${uuidv5("dns", "${azurerm_cosmosdb_sql_role_definition.example.id}${"22a14f43-816f-4fc8-8b17-08b3769ce9de"}${azurerm_cosmosdb_sql_database.main.id}")}"
+  resource_group_name = azurerm_resource_group.rg.name
+  account_name        = azurerm_cosmosdb_account.db.name
+  role_definition_id  = azurerm_cosmosdb_sql_role_definition.example.id
+  principal_id        = "22a14f43-816f-4fc8-8b17-08b3769ce9de"
+  scope               = azurerm_cosmosdb_account.db.id
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "role_assign_az_func" {
+  name                = "${uuidv5("dns", "${azurerm_cosmosdb_sql_role_definition.example.id}${azurerm_linux_function_app.example.identity.0.principal_id}${azurerm_cosmosdb_sql_database.main.id}")}"
+  resource_group_name = azurerm_resource_group.rg.name
+  account_name        = azurerm_cosmosdb_account.db.name
+  role_definition_id  = azurerm_cosmosdb_sql_role_definition.example.id
+  principal_id        = azurerm_linux_function_app.example.identity.0.principal_id
+  scope               = azurerm_cosmosdb_account.db.id
 }
