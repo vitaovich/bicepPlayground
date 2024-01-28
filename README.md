@@ -34,3 +34,8 @@ steps to follow:
 `conda env update --file environment.yml  --prune`
 `conda activate my_jupyterlab_env`
 `python -m ipykernel install --user --name my_jupyterlab_env --display-name "Conda (my_jupyterlab_env)"`
+
+
+## source a bash script so variables are in your current session
+- use `. ./setup.sh`
+- the '.' will source any commands to current session

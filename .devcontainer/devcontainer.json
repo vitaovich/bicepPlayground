@@ -13,6 +13,9 @@
 		},
 		"ghcr.io/devcontainers/features/dotnet:2": {
 			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/terraform-asdf:2": {
+			"version": "latest"
 		}
 	},
 
