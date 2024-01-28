@@ -14,3 +14,6 @@ dependencies:
     - azure-storage-blob
     - azure-identity
     - azure-functions
+    - scrapy
+    - requests
+    - beautifulsoup4
