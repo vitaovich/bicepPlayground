@@ -62,6 +62,35 @@ resource "azurerm_storage_account" "azfunc" {
   }
 }
 
+resource "azurerm_service_plan" "example" {
+  name                = "${substr(sha256(azurerm_resource_group.rg.name),0,13)}myserviceplan"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  os_type             = "Linux"
+  sku_name            = "Y1"
+}
+
+resource "azurerm_linux_function_app" "example" {
+  name                = "${substr(sha256(azurerm_resource_group.rg.name),0,13)}myfnapp"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  storage_account_name       = azurerm_storage_account.azfunc.name
+  storage_account_access_key = azurerm_storage_account.azfunc.primary_access_key
+  service_plan_id            = azurerm_service_plan.example.id
+
+  app_settings = {
+    "my_storage__serviceUri" = azurerm_storage_account.models.primary_blob_endpoint
+  }
+
+  site_config {
+  }
+}
+
+
+
+
+
 resource "azurerm_role_assignment" "storage_contributor" {
   scope                = azurerm_storage_account.models.id
   role_definition_name = "Storage Blob Data Contributor"
