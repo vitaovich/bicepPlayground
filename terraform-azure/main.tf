@@ -83,6 +83,10 @@ resource "azurerm_linux_function_app" "example" {
     "my_storage__serviceUri" = azurerm_storage_account.models.primary_blob_endpoint
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
   }
 }
@@ -95,4 +99,10 @@ resource "azurerm_role_assignment" "storage_contributor" {
   scope                = azurerm_storage_account.models.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = "22a14f43-816f-4fc8-8b17-08b3769ce9de"
+}
+
+resource "azurerm_role_assignment" "az_func_storage_contributor" {
+  scope                = azurerm_storage_account.models.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_linux_function_app.example.identity.0.principal_id
 }
