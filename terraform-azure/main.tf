@@ -23,3 +23,30 @@ resource "azurerm_resource_group" "rg" {
     "Team"        = "vitaovich"
   }
 }
+
+resource "azurerm_storage_account" "models" {
+  name                     = "${substr(sha256(azurerm_resource_group.rg.name),0,13)}models"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    "Environment" = "Dev",
+    "Team"        = "vitaovich"
+  }
+}
+
+resource "azurerm_storage_account" "azfunc" {
+  name                     = "${substr(sha256(azurerm_resource_group.rg.name),0,13)}azfunc"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    "Environment" = "Dev",
+    "Team"        = "vitaovich"
+  }
+}
+
